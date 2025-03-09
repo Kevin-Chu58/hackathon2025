@@ -1,0 +1,10 @@
+.login-button {
+  color: white;
+  cursor: pointer;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
+}
+.login-button:hover {
+  text-shadow: 2px 2px 2px cyan;
+}/*# sourceMappingURL=index.css.map */
