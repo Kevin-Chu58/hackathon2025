@@ -37,26 +37,30 @@ const Home = () => {
     const [navId, setNavId] = useState(0);
     const navigateTo = useNavigate();
     const uri = "/home/";
+    const uriFix = "/home";
 
     useEffect(() => {
         handleNavTabFocus();
     });
 
-    const handleNavTabClick = (id, path) => {
-        // setNavId(id);
+    const handleNavTabClick = (path) => {
         navigateTo(uri + path);
+    };
+
+    const handleNavTabFocus = () => {
+        const currentURL = window.location.pathname;
+        const pathParams = currentURL.split("/");
+        
+        setNavId(pathParams[2] ?? "");
     };
 
     const isOnNavId = (id) => {
         return navId === id;
     };
 
-    const handleNavTabFocus = () => {
-        const currentURL = window.location.pathname;
-        const urlParams = currentURL.split("/");
-        
-        const path = urlParams[2];
-        setNavId(path);
+    // redirect: /home/ => /home
+    if (window.location.pathname === uri) {
+        return <Navigate to={uriFix} replace />;
     }
 
     return (
@@ -80,12 +84,12 @@ const Home = () => {
                             width: "fit-content",
                         }}
                     >
-                        {homeNavs.map((nav, id) => (
+                        {homeNavs.map((nav) => (
                             <NavTab
                                 key={nav.name}
                                 isFocus={isOnNavId(nav.path)}
                                 startIcon={nav.startIcon}
-                                onClick={() => handleNavTabClick(id, nav.path)}
+                                onClick={() => handleNavTabClick(nav.path)}
                             >
                                 {nav.name}
                             </NavTab>
@@ -97,12 +101,12 @@ const Home = () => {
             <Routes>
                 {homeNavs.map((nav) => (
                     <Route
+                        index={nav.index}
                         key={`home-nav-${nav.name}`}
                         element={nav.element}
                         path={nav.path}
                     />
                 ))}
-                
                 <Route path={"*"} element={<Navigate to="/*" />} />
             </Routes>
         </Container>

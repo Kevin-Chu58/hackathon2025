@@ -24,7 +24,7 @@ function App() {
                     path=""
                     element={getDestination(
                         <Login />,
-                        <Navigate to="/home" replace />
+                        <Navigate to="/home/" replace />
                     )}
                 />
                 {routes.map((route) => (
