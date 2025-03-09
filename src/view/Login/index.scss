@@ -1,0 +1,9 @@
+.login-button {
+    color: white;
+    cursor: pointer;
+    user-select: none;
+
+    &:hover {
+        text-shadow: 2px 2px 2px cyan;
+    }
+}

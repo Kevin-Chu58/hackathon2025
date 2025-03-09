@@ -1,7 +1,7 @@
 import { Button } from "@mui/material";
 import { grey } from "@mui/material/colors";
 
-const NavButton = ({ isFocus, children }) => {
+const NavButton = ({ isFocus, onClick, startIcon, endIcon, children }) => {
     return (
         <Button
             disableRipple
@@ -17,6 +17,9 @@ const NavButton = ({ isFocus, children }) => {
                     background: grey[900],
                 },
             }}
+            onClick={onClick}
+            startIcon={startIcon}
+            endIcon={endIcon}
         >
             {children}
         </Button>
