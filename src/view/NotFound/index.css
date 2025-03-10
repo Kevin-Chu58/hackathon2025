@@ -1,0 +1,7 @@
+.notFound-home-link {
+  text-decoration: underline;
+  cursor: pointer;
+}
+.notFound-home-link:hover {
+  color: cyan;
+}/*# sourceMappingURL=index.css.map */

@@ -4,13 +4,14 @@ import { grey } from "@mui/material/colors";
 import { SiGitbook } from "react-icons/si";
 import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import CookBook from "./CookBook";
 
 const homeNavs = [
     {
         name: "Cook Book",
         path: "",
         index: true,
-        element: "cook book", // TODO
+        element: <CookBook/>,
         startIcon: <SiGitbook />,
     },
     {

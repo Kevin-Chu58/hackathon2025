@@ -1,0 +1,8 @@
+.notFound-home-link {
+    text-decoration: underline;
+    cursor: pointer;
+
+    &:hover {
+        color: cyan;
+    }
+}
