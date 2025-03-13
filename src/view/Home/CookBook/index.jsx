@@ -3,82 +3,40 @@ import {
     Divider,
     Grid2 as Grid,
     Paper,
-    Rating,
     Typography,
 } from "@mui/material";
-import "../../../asset/css/solitreo.css";
-import { cyan, grey } from "@mui/material/colors";
+import { grey } from "@mui/material/colors";
+import CookBookDish from "./CookBookDish";
 
 const cookbookDishes = [
     {
-        name: "stir-fried tomato and scrambled eggs",
+        _id: "abcdefg",
+        name: "tomato scrambled eggs",
         realName: "番茄炒蛋",
         rating: 4.6,
         href: "https://www.sidechef.com/recipe/9103268d-f5cc-4415-bf98-37e16513045f.jpg?d=1408x1120",
+        ingredients: [
+            "Chopped tomatoes",
+            "Beaten eggs",
+            "Oil",
+            "Sugar",
+            "Salt",
+        ],
+        step_dict: {
+            "0": "Pour oil into the pan and heat it.",
+            "1": "Pour the beaten eggs into the pan and stir-fry.",
+            "2": "Take out the scrambled eggs and set them aside.",
+            "3": "Add the tomatoes to the pan and stir-fry.",
+            "4": "Add the scrambled eggs back, then add salt, sugar, and some water, and stir-fry.",
+            "5": "Serve the tomato scrambled eggs.",
+        }
     },
 ];
 
 const CookBook = () => {
-    const cookbookDish = (dish) => {
-        return (
-            <Grid size={3} p={4}>
-                <Paper
-                    elevation={4}
-                    sx={{
-                        background: "#ffffff11",
-                        overflow: "hidden",
-                        color: "inherit",
-                    }}
-                >
-                    {/* image content */}
-                    <img width="100%" src={dish.href} />
-
-                    <Grid
-                        px={1}
-                        sx={{ display: "flex", alignItems: "center", mt: -3.5 }}
-                    >
-                        <Rating
-                            size="small"
-                            value={dish.rating}
-                            precision={0.1}
-                            readOnly
-                        />
-                        <Typography sx={{ fontFamily: "cursive" }}>
-                            {dish.rating}
-                        </Typography>
-                    </Grid>
-                    {/* paper content */}
-                    <Grid size={12} p={1} 
-                            sx={{
-                                fontFamily: "Solitreo",
-                                cursor: "pointer",
-                                ":hover": {
-                                    color: "cyan",
-                                }
-                            }}>
-                        <Typography
-                            sx={{
-                                fontFamily: "inherit",
-                                textTransform: "capitalize",
-                            }}
-                        >
-                            {dish.name}
-                        </Typography>
-                        <Typography
-                            sx={{
-                                fontFamily: "inherit",
-                            }}
-                        >
-                            ({dish.realName})
-                        </Typography>
-                    </Grid>
-                </Paper>
-            </Grid>
-        );
-    };
 
     return (
-        <Container sx={{ p: 4 }}>
+        <Container id="cookbook" sx={{ p: 4 }}>
             <Paper
                 sx={{
                     bgcolor: "inherit",
@@ -109,7 +67,8 @@ const CookBook = () => {
                         />
                     </Grid>
                     <Grid size={12} p={1} spacing={1}>
-                        {cookbookDishes.map((dish) => cookbookDish(dish))}
+                        {cookbookDishes.map((dish) => 
+                            <CookBookDish key={dish._id} dish={dish}/>)}
                     </Grid>
                 </Grid>
             </Paper>

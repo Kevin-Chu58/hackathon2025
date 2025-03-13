@@ -1,5 +1,4 @@
 import { Container, Typography } from "@mui/material";
-import "../../asset/css/emblemaOne.css";
 import { useNavigate } from "react-router-dom";
 import "./index.css";
 

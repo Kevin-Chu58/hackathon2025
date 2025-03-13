@@ -5,6 +5,7 @@ import NavBar from "./component/NavBar/index.jsx";
 import { useAuth0 } from "@auth0/auth0-react";
 import Login from "./view/Login/index.jsx";
 import { useEffect } from "react";
+import "./asset/css/fonts.css";
 
 function App() {
     const { isLoading, isAuthenticated } = useAuth0();

@@ -1,7 +1,6 @@
 import { Container, Typography, Paper, Box } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import { PiCookingPotFill } from "react-icons/pi";
-import "../../asset/css/emblemaOne.css";
 import "./index.css";
 import { useAuth0 } from "@auth0/auth0-react";
 
