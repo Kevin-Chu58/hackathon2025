@@ -8,20 +8,31 @@ import {
     Divider,
     Box,
     Chip,
+    Button,
+    Stack,
 } from "@mui/material";
 import { useEffect, useState } from "react";
-import { blue, cyan, grey } from "@mui/material/colors";
+import { green, grey } from "@mui/material/colors";
 import React from "react";
 import cookbookService from "../../../../service/cookbook.ts";
 import sortUtils from "../../../../utils/sort.js";
 import matchUtils from "../../../../utils/match.js";
+import cookbookUtils from "../../../../utils/cookbook.js";
+import imgs from "../../../../asset/img/imgs";
 import "./index.css";
+import { useNavigate } from "react-router-dom";
 
 const CookBookDish = ({ dish }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [ingredientFocus, setIngredientFocus] = useState("");
     const [keywords, setKeywords] = useState([]);
     const [keywordMap, setKeywordMap] = useState();
+    const [dishIngredients, setDishIngredients] = useState([]);
+    const navigateTo = useNavigate();
+
+    const navigateToCooking = () => {
+        navigateTo(`/cooking/${dish.name}`);
+    };
 
     const initKeywords = async () => {
         const keywords1 = [
@@ -42,21 +53,16 @@ const CookBookDish = ({ dish }) => {
             // );
             keywords1.push(dish.name.toLowerCase());
             keywords1.sort((a, b) => sortUtils.sortStrings(b, a));
-            let newKeywords = createKeywordMap(keywords1);
+            // append water to ingredients if not
+            let ingredients = cookbookUtils.adjustDishIngredients(
+                keywords1,
+                dish.ingredients,
+                setDishIngredients
+            );
+            // create keyword mapping
+            let newKeywords = cookbookUtils.createKeywordMap(ingredients, keywords1, setKeywordMap);
             setKeywords(newKeywords);
         }
-    };
-
-    const hasSameIngredient = (ingredient) => {
-        ingredient = ingredient.toLowerCase();
-        let trueIngredient = keywordMap?.get(ingredient) ?? ingredient;
-        return ingredientFocus === trueIngredient;
-    };
-
-    const updateIngredientFocus = (ingredient) => {
-        ingredient = ingredient.toLowerCase();
-        let trueIngredient = keywordMap?.get(ingredient) ?? ingredient;
-        setIngredientFocus(trueIngredient);
     };
 
     const resetIngredient = () => {
@@ -67,135 +73,11 @@ const CookBookDish = ({ dish }) => {
         return steps.join(" ");
     };
 
-    const createKeywordMap = (keywords) => {
-        let map = new Map();
-
-        // map ingredient to keywords: e.g. chopped tomatoes -> tomatoes
-        dish.ingredients.forEach((ingredient) => {
-            ingredient = ingredient.toLowerCase();
-
-            keywords.forEach((keyword) => {
-                if (
-                    !map.has(ingredient) &&
-                    ingredient.includes(keyword) &&
-                    ingredient.length > keyword.length
-                )
-                    map.set(ingredient, keyword);
-            });
-        });
-
-        setKeywordMap(map);
-
-        // update keywords with the kepword map keys
-        let newKeywords = keywords.concat(...map.keys());
-        return newKeywords.sort((a, b) => sortUtils.sortStrings(b, a));
-    };
-
-    const getInteractiveStep = (step) => {
-        if (keywords.length > 0) {
-            let toReplace = []; // []: {index, key}
-            let stepLowerCase = step.toLowerCase();
-
-            keywords.forEach((keyword) => {
-                let matches = matchUtils.findAllOccurrencesMatchAll(
-                    stepLowerCase,
-                    keyword
-                );
-
-                // check if is duplicated in toReplace
-                matches.forEach((startIndex) => {
-                    let hasTaken = false;
-
-                    toReplace.forEach((to) => {
-                        if (
-                            startIndex >= to.index &&
-                            startIndex < to.index + to.key.length
-                        ) {
-                            hasTaken = true;
-                        }
-                    });
-
-                    if (!hasTaken) {
-                        toReplace.push({
-                            index: startIndex,
-                            key: keyword,
-                        });
-                    }
-                });
-            });
-
-            toReplace.sort((a, b) => a.index - b.index);
-
-            /// create an array of subString object to generate the interactive step component
-
-            let subStrings = [];
-
-            let curIndex = 0;
-
-            const appendSubString = () => {
-                let endIndex = toReplace[0]?.index ?? step.length;
-
-                subStrings.push({
-                    text: step.substring(curIndex, endIndex),
-                });
-                curIndex = endIndex;
-            };
-
-            // append any subString before the first toReplace subString
-            if (toReplace[0].index > 0) {
-                appendSubString();
-            }
-            while (curIndex < step.length) {
-                let toReplaceNext = toReplace.shift();
-                // append the toReplace subString
-                subStrings.push({
-                    text: step.substring(
-                        curIndex,
-                        curIndex + toReplaceNext.key.length
-                    ),
-                    key: toReplaceNext.key,
-                });
-                curIndex += toReplaceNext.key.length;
-
-                // append the subString between the next toReplace subString
-                appendSubString();
-            }
-
-            return (
-                <p style={{ fontFamily: "Lexend Deca" }}>
-                    {subStrings.map((subString, i) => (
-                        <React.Fragment key={i}>
-                            {subString.key ? (
-                                <span
-                                    className={`cookbook-highlight-keyword ${
-                                        hasSameIngredient(subString.key)
-                                            ? "focus"
-                                            : ""
-                                    }`}
-                                    key={`${step}-${i}`}
-                                    style={{
-                                        cursor: "pointer",
-                                    }}
-                                    onMouseEnter={() =>
-                                        updateIngredientFocus(subString.key)
-                                    }
-                                    onMouseLeave={resetIngredient}
-                                >
-                                    {subString.text}
-                                </span>
-                            ) : (
-                                <span>{subString.text}</span>
-                            )}
-                        </React.Fragment>
-                    ))}
-                </p>
-            );
-        } else return <p>{step}</p>;
-    };
-
     useEffect(() => {
-        if (isExpanded) initKeywords();
-    }, [isExpanded]);
+        if (isExpanded) {
+            initKeywords();
+        }
+    });
 
     useEffect(() => {}, [ingredientFocus]);
 
@@ -213,8 +95,7 @@ const CookBookDish = ({ dish }) => {
                 }}
             >
                 {/* image content */}
-                <img width="100%" src={dish.href} />
-
+                <img width="100%" src={imgs[dish.name]} />
                 <Grid
                     px={1}
                     sx={{ display: "flex", alignItems: "center", mt: -3.5 }}
@@ -250,19 +131,11 @@ const CookBookDish = ({ dish }) => {
                     >
                         {dish.name}
                     </Typography>
-                    <Typography
-                        sx={{
-                            fontFamily: "inherit",
-                        }}
-                    >
-                        ({dish.realName})
-                    </Typography>
                 </Grid>
             </Paper>
 
             <Menu
                 sx={{
-                    background: "#00000066",
                     transition: "background .2s ease-in",
                     "& .MuiMenu-paper": {
                         background: "black",
@@ -286,135 +159,212 @@ const CookBookDish = ({ dish }) => {
                 onClose={() => setIsExpanded(false)}
             >
                 <Container maxWidth="md" p={0} disableGutters>
-                    <Grid container>
-                        <Grid
-                            container
-                            size={3}
-                            sx={{ background: grey[900], pb: 0.5 }}
-                        >
+                    <Grid
+                        container
+                        alignItems="flex-start"
+                        sx={{ background: grey[900] }}
+                    >
+                        <Grid container size={3} sx={{ pb: 0.5 }}>
                             {/* image content */}
-                            <img width="100%" src={dish.href} />
-                            <Typography
-                                className={`${
-                                    hasSameIngredient(dish.name) ? "focus" : ""
-                                }`}
-                                sx={{
-                                    p: 1,
-                                    pb: 0.5,
-                                    fontFamily: "Solitreo",
-                                    textTransform: "capitalize",
-                                    cursor: "pointer",
-                                    ":hover, &.focus": {
-                                        color: "cyan",
-                                    },
-                                }}
-                                onMouseEnter={() =>
-                                    updateIngredientFocus(dish.name)
-                                }
-                                onMouseLeave={resetIngredient}
-                            >
-                                {dish.name}
-                            </Typography>
-                            <Divider
-                                sx={{
-                                    width: "100%",
-                                    pb: 1,
-                                    mt: 2,
-                                    fontSize: 16,
-                                    ":before, :after": {
-                                        borderTop: `2px cyan solid`,
-                                        mx: 1,
-                                    },
-                                    "& .MuiDivider-wrapper": {
-                                        px: 0,
-                                    },
-                                }}
-                                textAlign="right"
-                            >
-                                <Chip
-                                    label="ingredients"
-                                    sx={{
-                                        fontFamily: "Solitreo",
-                                        fontSize: 16,
-                                        bgcolor: "cyan",
-                                        pt: 1,
-                                    }}
+                            <Grid size={12}>
+                                <img
+                                    width="100%"
+                                    src={imgs[dish.name]}
+                                    style={{ aspectRatio: 3 / 2 }}
                                 />
-                            </Divider>
-                            {dish.ingredients.map((ingredient) => (
-                                <Grid
+                            </Grid>
+                            <Grid size={12}>
+                                <Typography
                                     className={`${
-                                        hasSameIngredient(ingredient)
+                                        cookbookUtils.hasSameIngredient(
+                                            keywordMap,
+                                            dish.name,
+                                            ingredientFocus
+                                        )
                                             ? "focus"
                                             : ""
                                     }`}
-                                    key={`${dish._id}-${ingredient}`}
-                                    size={12}
                                     sx={{
-                                        mx: 1,
                                         p: 1,
-                                        pb: 0,
-                                        justifyItems: "center",
-                                        position: "relative",
-                                        border: "1px transparent solid",
-                                        borderRadius: 2,
+                                        pb: 0.5,
+                                        fontFamily: "Solitreo",
+                                        textTransform: "capitalize",
                                         cursor: "pointer",
                                         ":hover, &.focus": {
                                             color: "cyan",
-                                            background: "#00000066",
                                         },
                                     }}
                                     onMouseEnter={() =>
-                                        updateIngredientFocus(ingredient)
+                                        cookbookUtils.updateIngredientFocus(
+                                            keywordMap,
+                                            dish.name,
+                                            setIngredientFocus
+                                        )
                                     }
                                     onMouseLeave={resetIngredient}
                                 >
-                                    <Typography
+                                    {dish.name}
+                                </Typography>
+                            </Grid>
+                            <Grid size={12}>
+                                <Divider
+                                    sx={{
+                                        width: "100%",
+                                        pb: 1,
+                                        mt: 2,
+                                        fontSize: 16,
+                                        ":before, :after": {
+                                            borderTop: `2px cyan solid`,
+                                            mx: 1,
+                                        },
+                                        "& .MuiDivider-wrapper": {
+                                            px: 0,
+                                        },
+                                    }}
+                                    textAlign="right"
+                                >
+                                    <Chip
+                                        label="ingredients"
                                         sx={{
                                             fontFamily: "Solitreo",
+                                            fontSize: 16,
+                                            bgcolor: "cyan",
+                                            pt: 1,
                                         }}
-                                    >
-                                        {ingredient}
-                                    </Typography>
-                                </Grid>
-                            ))}
-                        </Grid>
-                        <Grid container size={9} direction="column" p={2}>
-                            {Object.keys(dish.step_dict).map((key, i) => (
-                                <Box
-                                    key={`${dish._id}-${i}`}
-                                    m={0}
-                                    display="flex"
-                                    alignItems="center"
-                                    fontSize={18}
-                                >
-                                    <div
-                                        style={{
-                                            border: "1px transparent solid",
-                                            borderRadius: 50,
-                                            background: grey[900],
-                                            padding: 5,
-                                            minWidth: 24,
-                                            height: 24,
+                                    />
+                                </Divider>
+                            </Grid>
+                            <Grid size={12} sx={{ overflowY: "auto", px: 0.5 }}>
+                                {dishIngredients.map((ingredient) => (
+                                    <Chip
+                                        className={`${
+                                            cookbookUtils.hasSameIngredient(
+                                                keywordMap,
+                                                ingredient,
+                                                ingredientFocus
+                                            )
+                                                ? "focus"
+                                                : ""
+                                        }`}
+                                        key={`${dish._id}-${ingredient}`}
+                                        label={ingredient}
+                                        sx={{
+                                            m: 0.25,
+                                            p: 0.5,
+                                            pb: 0,
+                                            fontSize: 16,
                                             justifyItems: "center",
-                                            alignItems: "center",
-                                            marginRight: 20,
-                                            fontFamily: "Lexend Deca",
+                                            position: "relative",
+                                            border: "1px transparent solid",
+                                            borderRadius: 2,
+                                            color: "white",
+                                            background: "transparent",
+                                            fontFamily: "Solitreo",
+                                            cursor: "pointer",
+                                            ":hover, &.focus": {
+                                                color: "cyan",
+                                                background: "#00000066",
+                                            },
                                         }}
+                                        onMouseEnter={() =>
+                                            cookbookUtils.updateIngredientFocus(
+                                                keywordMap,
+                                                ingredient,
+                                                setIngredientFocus
+                                            )
+                                        }
+                                        onMouseLeave={resetIngredient}
+                                    />
+                                ))}
+                            </Grid>
+                        </Grid>
+                        <Grid
+                            container
+                            size={9}
+                            sx={{
+                                background: "#00000066",
+                            }}
+                        >
+                            <Grid
+                                className="cookbook-steps"
+                                size={12}
+                                p={2}
+                                mt={1}
+                                mr={1}
+                            >
+                                {Object.keys(dish.step_dict).map((key, i) => (
+                                    <Box
+                                        key={`${dish._id}-${i}`}
+                                        m={0}
+                                        display="flex"
+                                        alignItems="center"
+                                        fontSize={18}
                                     >
-                                        <Typography
-                                            variant="h5"
-                                            lineHeight={1}
-                                            color="inherit"
-                                            fontFamily="inherit"
+                                        <div
+                                            style={{
+                                                border: "1px transparent solid",
+                                                borderRadius: 50,
+                                                background: grey[900],
+                                                padding: 5,
+                                                minWidth: 24,
+                                                height: 24,
+                                                justifyItems: "center",
+                                                alignItems: "center",
+                                                marginRight: 20,
+                                                fontFamily: "Lexend Deca",
+                                            }}
                                         >
-                                            {Number.parseInt(key) + 1}
-                                        </Typography>
-                                    </div>
-
-                                    {getInteractiveStep(dish.step_dict[key])}
-                                </Box>
-                            ))}
+                                            <Typography
+                                                variant="h5"
+                                                lineHeight={1}
+                                                color="inherit"
+                                                fontFamily="inherit"
+                                            >
+                                                {Number.parseInt(key) + 1}
+                                            </Typography>
+                                        </div>
+                                        {cookbookUtils.getInteractiveStep(
+                                            dish.step_dict[key],
+                                            cookbookUtils.configStepSpanArray(dish.step_dict[key], keywords),
+                                            keywordMap,
+                                            ingredientFocus,
+                                            setIngredientFocus,
+                                            cookbookUtils.hasSameIngredient,
+                                            cookbookUtils.updateIngredientFocus,
+                                            resetIngredient,
+                                        )}
+                                    </Box>
+                                ))}
+                            </Grid>
+                            <Grid size={12}>
+                                <Stack padding="max" alignItems="end" p={1}>
+                                    <Button
+                                        variant="outlined"
+                                        sx={{
+                                            minWidth: 60,
+                                            bgcolor: "transparent",
+                                            borderColor: green[500],
+                                            borderRadius: 40,
+                                            borderWidth: 2,
+                                            color: green[500],
+                                            fontWeight: "bold",
+                                            fontSize: 16,
+                                            fontFamily: "Solitreo",
+                                            pb: 0,
+                                            textTransform: "none",
+                                            transition: "all .2s ease-in-out",
+                                            ":hover": {
+                                                bgcolor: green[500],
+                                                color: "black",
+                                            },
+                                        }}
+                                        disableRipple
+                                        onClick={navigateToCooking}
+                                    >
+                                        start!
+                                    </Button>
+                                </Stack>
+                            </Grid>
                         </Grid>
                     </Grid>
                 </Container>

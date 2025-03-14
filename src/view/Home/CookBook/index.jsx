@@ -14,7 +14,6 @@ const cookbookDishes = [
         name: "tomato scrambled eggs",
         realName: "番茄炒蛋",
         rating: 4.6,
-        href: "https://www.sidechef.com/recipe/9103268d-f5cc-4415-bf98-37e16513045f.jpg?d=1408x1120",
         ingredients: [
             "Chopped tomatoes",
             "Beaten eggs",

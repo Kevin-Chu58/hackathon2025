@@ -5,6 +5,26 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background-color: #111320;
   color: #eee;
+  /* width */
+  /* Track */
+  /* Handle */
+  /* Handle on hover */
+}
+body ::-webkit-scrollbar {
+  width: 10px;
+}
+body ::-webkit-scrollbar-track {
+  background: #222431;
+  border: "1px transparent solid";
+  border-radius: 20px;
+}
+body ::-webkit-scrollbar-thumb {
+  background: #888;
+  border: "1px transparent solid";
+  border-radius: 20px;
+}
+body ::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
 
 code {

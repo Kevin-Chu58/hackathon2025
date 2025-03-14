@@ -9,11 +9,11 @@
     &.focus {
         color: cyan;
     }
-  }
-  
-  /* Fade in */
-  .cookbook-highlight-keyword::after {
-    content: '';
+}
+
+/* Fade in */
+.cookbook-highlight-keyword::after {
+    content: "";
     position: absolute;
     bottom: 0;
     left: 0;
@@ -22,15 +22,19 @@
     background-color: cyan;
     opacity: 0;
     transition: opacity 300ms, transform 300ms;
-  }
-  
-  /* Slide in */  
-   .cookbook-highlight-keyword::after {
+}
+
+/* Slide in */
+.cookbook-highlight-keyword::after {
     transform: translate3d(-100%, 0, 0);
-  }
-  
-   .cookbook-highlight-keyword:hover::after,
-   .cookbook-highlight-keyword:focus::after{
+}
+
+.cookbook-highlight-keyword:hover::after,
+.cookbook-highlight-keyword:focus::after {
     opacity: 1;
     transform: translate3d(0, 0, 0);
-  }
+}
+
+.cookbook-steps {
+    overflow-y: scroll;
+}
