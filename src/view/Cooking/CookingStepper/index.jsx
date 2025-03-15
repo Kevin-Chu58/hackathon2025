@@ -9,7 +9,16 @@ import { green, grey, pink } from "@mui/material/colors";
 import { useEffect, useState } from "react";
 import cookbookUtils from "../../../utils/cookbook";
 
-const CookingStepper = ({ steps, keywordMap, ingredientsFocus, setIngredientsFocus, toReplaces, sx }) => {
+const CookingStepper = ({
+    steps,
+    keywordMap,
+    ingredientsFocus,
+    setIngredientsFocus,
+    toReplaces,
+    curStep,
+    completeDish,
+    sx,
+}) => {
     const [activeStep, setActiveStep] = useState(0);
     const [stepIngredients, setStepIngredients] = useState([]);
 
@@ -17,18 +26,24 @@ const CookingStepper = ({ steps, keywordMap, ingredientsFocus, setIngredientsFoc
         let stepIngredients = toReplaces.map((toReplace) => {
             let ingredients = [];
             toReplace.map((span) => {
-                    ingredients.push(keywordMap.get(span.key) ?? span.key);
-            })
+                ingredients.push(keywordMap.get(span.key) ?? span.key);
+            });
             return ingredients;
-        })
+        });
         setStepIngredients([...stepIngredients]);
-    }
+    };
+
+    const isStepCompleted = () => {
+        console.log(curStep, activeStep === curStep);
+        return activeStep === curStep;
+    };
 
     const handleNext = () => {
         let nextStep = activeStep + 1;
         setActiveStep(nextStep);
         if (nextStep < steps.length)
             setIngredientsFocus(stepIngredients[nextStep]);
+        else completeDish();
         moveScrollBar();
     };
 
@@ -86,7 +101,7 @@ const CookingStepper = ({ steps, keywordMap, ingredientsFocus, setIngredientsFoc
                                         color: "white",
                                     },
                                     "&.Mui-completed": {
-                                        color: pink[400],
+                                        color: green[500],
                                     },
                                     "&.Mui-disabled": {
                                         color: grey[600],
@@ -96,7 +111,7 @@ const CookingStepper = ({ steps, keywordMap, ingredientsFocus, setIngredientsFoc
                                     fontSize: "2em",
                                     color: grey[600],
                                     "&.Mui-active, &.Mui-completed": {
-                                        color: pink[500],
+                                        color: green[500],
                                     },
                                     "& .MuiStepIcon-text": {
                                         fill: "black",
@@ -109,21 +124,23 @@ const CookingStepper = ({ steps, keywordMap, ingredientsFocus, setIngredientsFoc
                             Step {index + 1} / {steps.length}
                         </StepLabel>
                         <StepContent>
-                            {/* <Typography>{step}</Typography> */}
                             {cookbookUtils.getInteractiveStep(
                                 step,
                                 toReplaces?.at(index) ?? [],
                                 keywordMap,
                                 ingredientsFocus,
                                 () => {},
-                                cookbookUtils.hasIncludeIngredient, 
+                                cookbookUtils.hasIncludeIngredient,
                                 () => {},
-                                () => {},   
+                                () => {}
                             )}
-                            <Box sx={{ mb: 2 }}>
+                            <Box
+                                sx={{ mb: 2 }}
+                            >
                                 <Button
                                     disableElevation
                                     disableRipple
+                                    disabled={!isStepCompleted()}
                                     variant="outlined"
                                     onClick={handleNext}
                                     sx={{
@@ -145,6 +162,11 @@ const CookingStepper = ({ steps, keywordMap, ingredientsFocus, setIngredientsFoc
                                             bgcolor: green[500],
                                             color: "black",
                                         },
+                                        "&.Mui-disabled": {
+                                            borderColor: grey[700],
+                                            background: grey[700],
+                                            color: grey[300],
+                                        }
                                     }}
                                 >
                                     {index === steps.length - 1

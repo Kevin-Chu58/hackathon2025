@@ -13,10 +13,11 @@ import imgs from "../../asset/img/imgs.js";
 import CookingStepper from "./CookingStepper";
 import sortUtils from "../../utils/sort.js";
 import cookbookUtils from "../../utils/cookbook.js";
+import cookbookService from "../../service/cookbook.ts";
 
-const dish = {
+const cookbookDish = {
     _id: "abcdefg",
-    name: "tomato scrambled eggs",
+    recipe_name: "tomato scrambled eggs",
     rating: 4.6,
     ingredients: ["Chopped tomatoes", "Beaten eggs", "Oil", "Sugar", "Salt"],
     step_dict: {
@@ -27,18 +28,21 @@ const dish = {
         4: "Add the scrambled eggs back, then add salt, sugar, and some water, and stir-fry.",
         5: "Serve the tomato scrambled eggs.",
     },
+    model_path: "",
 };
 const Cooking = () => {
     const uris = ["/cooking/", "/cooking"];
     const [recipeId, setRecipeId] = useState("");
+    const [dish, setDish] = useState();
     const [ingredientsFocus, setIngredientsFocus] = useState([]);
     const [keywords, setKeywords] = useState([]);
     const [keywordMap, setKeywordMap] = useState();
     const [dishIngredients, setDishIngredients] = useState([]);
     const [stepSpanArrays, setStepSpanArrays] = useState([]);
+    const [processId, setProcessId] = useState();
+    const [curStep, setCurStep] = useState(-1);
+    const [intervalId, setIntervalId] = useState();
     const navigateTo = useNavigate();
-
-    // TODO - write api request to get the recipe information
     // TODO - add navigateTo 404 when url doesn't match the records
 
     const getRecipeIdFromURL = () => {
@@ -47,6 +51,25 @@ const Cooking = () => {
 
         setRecipeId(pathParams[2]?.replaceAll("%20", " ") ?? "");
     };
+
+    const initDish = async () => {
+        const dish = await cookbookService.getCookbookRecipe();
+        setDish(dish);
+    }
+
+    const initProcess = async () => {
+        const processId = await cookbookService.postRunModelPath(dish.model_path);
+        setProcessId(processId);
+    }
+
+    const checkCurStep = async () => {
+        const curStep = await cookbookService.getLatestResult();
+        setCurStep(curStep);
+    }
+
+    const completeDish = () => {
+        clearInterval(intervalId);
+    }
 
     const initStepSpanArrays = () => {
         let newStepSpanArrays = Object.values(dish.step_dict).map(step => {
@@ -59,7 +82,7 @@ const Cooking = () => {
     /// ingredient focus
 
     const initKeywords = async () => {
-        const keywords1 = [
+        const annotations = [
             "scrambled eggs",
             "tomatoes",
             "tomato",
@@ -70,28 +93,44 @@ const Cooking = () => {
             "oil",
         ];
 
-        // let groupSteps = getGroupSteps(Object.values(dish.step_dict));
-            // const annotations = await cookbookService.getFoodAnnotation(
-            //     groupSteps
-            // );
-            keywords1.push(dish.name.toLowerCase());
-            keywords1.sort((a, b) => sortUtils.sortStrings(b, a));
+        let groupSteps = getGroupSteps(Object.values(dish.step_dict));
+            annotations = await cookbookService.getFoodAnnotation(
+                groupSteps
+            );
+            annotations.push(dish.recipe_name.toLowerCase());
+            annotations.sort((a, b) => sortUtils.sortStrings(b, a));
             // append water to ingredients if not
             let ingredients = cookbookUtils.adjustDishIngredients(
-                keywords1,
+                annotations,
                 dish.ingredients,
                 setDishIngredients
             );
             // create keyword mapping
             let newKeywords = cookbookUtils.createKeywordMap(
                 ingredients,
-                keywords1,
+                annotations,
                 setKeywordMap
             );
             setKeywords(newKeywords);
     };
 
-    // const createStepKeywords
+    useEffect(() => {
+        if (!dish) {
+            initDish();
+        }
+    })
+
+    useEffect(() => {
+        if (dish && !processId) {
+            initProcess();
+        }
+    }, [dish]);
+
+    useEffect(() => {
+        if (processId) {
+            setIntervalId(setInterval(checkCurStep(), 1000));
+        }
+    }, [processId]);
 
     useEffect(() => {
         if (keywords.length === 0) {
@@ -122,7 +161,7 @@ const Cooking = () => {
                     {/* image content */}
                     <img
                         width="100%"
-                        src={imgs[dish.name]}
+                        src={imgs[dish.recipe_name]}
                         style={{ aspectRatio: 3 / 2 }}
                     />
                     <Grid size={12}>
@@ -130,7 +169,7 @@ const Cooking = () => {
                             className={`${
                                 cookbookUtils.hasIncludeIngredient(
                                     keywordMap,
-                                    dish.name,
+                                    dish.recipe_name,
                                     ingredientsFocus
                                 )
                                     ? "focus"
@@ -146,7 +185,7 @@ const Cooking = () => {
                                 },
                             }}
                         >
-                            {dish.name}
+                            {dish.recipe_name}
                         </Typography>
                     </Grid>
                     <Grid size={12}>
@@ -226,6 +265,8 @@ const Cooking = () => {
                                 ingredientsFocus={ingredientsFocus}
                                 toReplaces={stepSpanArrays}
                                 setIngredientsFocus={setIngredientsFocus}
+                                curStep={curStep}
+                                completeDish={completeDish}
                                 sx={{
                                     p: 2,
                                     pl: 10,

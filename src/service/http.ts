@@ -8,21 +8,21 @@ type HttpRequestBody =
     | ArrayBufferView;
 
 const get = <TResponse>(
-    apiBaseURL: String,
+    apiBaseURL: string,
     endpoint: string
 ): Promise<TResponse> => makeRequest(apiBaseURL, endpoint, "get");
 
 const put = <TResponse>(
-    apiBaseURL: String,
+    apiBaseURL: string,
     endpoint: string,
-    body: Object = "",
+    body: HttpRequestBody = "",
     headers = new Headers()
 ): Promise<TResponse> =>
     makeRequest(
         apiBaseURL,
         endpoint,
         "put",
-        JSON.stringify(body),
+        body,
         setContentTypeJSON(headers)
     );
 
@@ -35,7 +35,7 @@ const put = <TResponse>(
  * @returns Response from the server
  */
 const postImage = <TResponse>(
-    apiBaseURL: String,
+    apiBaseURL: string,
     endpoint: string,
     imageData: string,
     headers?: Headers
@@ -48,7 +48,7 @@ const postImage = <TResponse>(
 };
 
 const post = <TResponse>(
-    apiBaseURL: String,
+    apiBaseURL: string,
     endpoint: string,
     body: HttpRequestBody = "",
     headers = new Headers()
@@ -57,37 +57,36 @@ const post = <TResponse>(
         apiBaseURL,
         endpoint,
         "post",
-        // JSON.stringify(body),
         body,
         setContentTypeJSON(headers)
     );
 
 // PATCH is required to be in all caps.  http services automatically capitalizes headers for post,put,get,del... but not patch.
 const patch = <TResponse>(
-    apiBaseURL: String,
+    apiBaseURL: string,
     endpoint: string,
-    body: String = "",
+    body: HttpRequestBody = "",
     headers = new Headers()
 ): Promise<TResponse> =>
     makeRequest(
         apiBaseURL,
         endpoint,
         "PATCH",
-        JSON.stringify(body),
+        body,
         setContentTypeJSON(headers)
     );
 
 const del = <TResponse>(
-    apiBaseURL: String,
+    apiBaseURL: string,
     endpoint: string,
-    body: Object = "",
+    body: HttpRequestBody = "",
     headers = new Headers()
 ): Promise<TResponse> =>
     makeRequest(
         apiBaseURL,
         endpoint,
         "delete",
-        JSON.stringify(body),
+        body,
         setContentTypeJSON(headers)
     );
 
@@ -103,7 +102,7 @@ const apiBaseURL = process.env.REACT_API_URL as string;
  * @returns The parsed response to the request
  */
 const makeRequest = async <TResponse>(
-    apiBaseURL: String,
+    apiBaseURL: string,
     endpoint: string,
     method: string,
     body?: HttpRequestBody,
@@ -113,7 +112,7 @@ const makeRequest = async <TResponse>(
     const response = await fetch(`${apiBaseURL}/${endpoint}`, {
         method,
         body,
-        headers: new Headers(),
+        headers: headers ?? new Headers(),
         // headers: await handleAuthHeader(headers ?? new Headers()),
     });
     return parseResponse(response);
@@ -227,7 +226,7 @@ const toQueryString = (
 };
 
 const apiBaseURLs = {
-    local: "localhost",
+    local: process.env.REACT_APP_API_URL ?? "",
     spoonacular: "https://api.spoonacular.com",
 };
 
