@@ -22,6 +22,8 @@ import imgs from "../../../../asset/img/imgs";
 import "./index.css";
 import { useNavigate } from "react-router-dom";
 
+const rating = 4.6;
+
 const CookBookDish = ({ dish }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [ingredientFocus, setIngredientFocus] = useState("");
@@ -31,11 +33,11 @@ const CookBookDish = ({ dish }) => {
     const navigateTo = useNavigate();
 
     const navigateToCooking = () => {
-        navigateTo(`/cooking/${dish.name}`);
+        navigateTo(`/cooking/${dish.recipe_name}`);
     };
 
     const initKeywords = async () => {
-        const keywords1 = [
+        const annotations = [
             "scrambled eggs",
             "tomatoes",
             "tomato",
@@ -47,20 +49,20 @@ const CookBookDish = ({ dish }) => {
         ];
 
         if (keywords.length === 0) {
-            // let groupSteps = getGroupSteps(Object.values(dish.step_dict));
-            // const annotations = await cookbookService.getFoodAnnotation(
-            //     groupSteps
-            // );
-            keywords1.push(dish.name.toLowerCase());
-            keywords1.sort((a, b) => sortUtils.sortStrings(b, a));
+            let groupSteps = getGroupSteps(Object.values(dish.step_dict));
+            annotations = await cookbookService.getFoodAnnotation(
+                groupSteps
+            );
+            annotations.push(dish.recipe_name.toLowerCase());
+            annotations.sort((a, b) => sortUtils.sortStrings(b, a));
             // append water to ingredients if not
             let ingredients = cookbookUtils.adjustDishIngredients(
-                keywords1,
+                annotations,
                 dish.ingredients,
                 setDishIngredients
             );
             // create keyword mapping
-            let newKeywords = cookbookUtils.createKeywordMap(ingredients, keywords1, setKeywordMap);
+            let newKeywords = cookbookUtils.createKeywordMap(ingredients, annotations, setKeywordMap);
             setKeywords(newKeywords);
         }
     };
@@ -95,19 +97,19 @@ const CookBookDish = ({ dish }) => {
                 }}
             >
                 {/* image content */}
-                <img width="100%" src={imgs[dish.name]} />
+                <img width="100%" src={imgs[dish.recipe_name]} />
                 <Grid
                     px={1}
                     sx={{ display: "flex", alignItems: "center", mt: -3.5 }}
                 >
                     <Rating
                         size="small"
-                        value={dish.rating}
+                        value={rating}
                         precision={0.1}
                         readOnly
                     />
                     <Typography sx={{ fontFamily: "cursive" }}>
-                        {dish.rating}
+                        {rating}
                     </Typography>
                 </Grid>
                 {/* paper content */}
@@ -129,7 +131,7 @@ const CookBookDish = ({ dish }) => {
                             textTransform: "capitalize",
                         }}
                     >
-                        {dish.name}
+                        {dish.recipe_name}
                     </Typography>
                 </Grid>
             </Paper>
@@ -169,7 +171,7 @@ const CookBookDish = ({ dish }) => {
                             <Grid size={12}>
                                 <img
                                     width="100%"
-                                    src={imgs[dish.name]}
+                                    src={imgs[dish.recipe_name]}
                                     style={{ aspectRatio: 3 / 2 }}
                                 />
                             </Grid>
@@ -178,7 +180,7 @@ const CookBookDish = ({ dish }) => {
                                     className={`${
                                         cookbookUtils.hasSameIngredient(
                                             keywordMap,
-                                            dish.name,
+                                            dish.recipe_name,
                                             ingredientFocus
                                         )
                                             ? "focus"
@@ -197,13 +199,13 @@ const CookBookDish = ({ dish }) => {
                                     onMouseEnter={() =>
                                         cookbookUtils.updateIngredientFocus(
                                             keywordMap,
-                                            dish.name,
+                                            dish.recipe_name,
                                             setIngredientFocus
                                         )
                                     }
                                     onMouseLeave={resetIngredient}
                                 >
-                                    {dish.name}
+                                    {dish.recipe_name}
                                 </Typography>
                             </Grid>
                             <Grid size={12}>

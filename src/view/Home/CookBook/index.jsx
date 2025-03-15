@@ -7,12 +7,13 @@ import {
 } from "@mui/material";
 import { grey } from "@mui/material/colors";
 import CookBookDish from "./CookBookDish";
+import { useEffect, useState } from "react";
+import cookbookService from "../../../service/cookbook.ts";
 
 const cookbookDishes = [
     {
         _id: "abcdefg",
-        name: "tomato scrambled eggs",
-        realName: "番茄炒蛋",
+        recipe_name: "tomato scrambled eggs",
         rating: 4.6,
         ingredients: [
             "Chopped tomatoes",
@@ -28,11 +29,24 @@ const cookbookDishes = [
             "3": "Add the tomatoes to the pan and stir-fry.",
             "4": "Add the scrambled eggs back, then add salt, sugar, and some water, and stir-fry.",
             "5": "Serve the tomato scrambled eggs.",
-        }
+        },
+        model_path: "",
     },
 ];
 
 const CookBook = () => {
+    const [dishes, setDishes] = useState([]);
+
+    const initDishes = async () => {
+        const dishes = await cookbookService.getCookbooks();
+        setDishes(dishes);
+    }
+
+    useEffect(() => {
+        if (dishes.length === 0) {
+            initDishes();
+        }
+    });
 
     return (
         <Container id="cookbook" sx={{ p: 4 }}>
@@ -66,7 +80,7 @@ const CookBook = () => {
                         />
                     </Grid>
                     <Grid size={12} p={1} spacing={1}>
-                        {cookbookDishes.map((dish) => 
+                        {dishes.map((dish) => 
                             <CookBookDish key={dish._id} dish={dish}/>)}
                     </Grid>
                 </Grid>
