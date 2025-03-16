@@ -20,6 +20,19 @@ type Annotations = {
     annotations: Annotation[],
 };
 
+type Process = {
+    message: string,
+    pid: number,
+};
+
+type Result = {
+    _id: string,
+    detect_step: number,
+    recipe_name: string,
+    time_stamp: string,
+    user_id: number,
+};
+
 const getFoodAnnotation = async (text: string): Promise<string[]> => {
 
     const formData = new URLSearchParams();
@@ -41,12 +54,21 @@ const getCookbookRecipe = async (recipeName: String): Promise<Recipe> => await h
 
 const getAnnotations = (endpoint: string, formString: string, headers: Headers): Promise<Annotations> => http.post(http.apiBaseURLs.spoonacular, endpoint, formString, headers);
 
-const postRunModelPath = async (modelPath: string) => await http.post(http.apiBaseURLs.local, `api/progress/run_model?model_path=${modelPath}`);
+const postRunModelPath = async (modelPath: string) => {
+    const process = await runModelPath(modelPath);
+    return process.pid;
+}
+
+const runModelPath = async (modelPath: string): Promise<Process> => await http.post(http.apiBaseURLs.local, `api/progress/run_model?model_path=${modelPath}`)
 
 const postStopProcess = async (processId: number) => await http.post(http.apiBaseURLs.local, `api/progress/kill_process?pid=${processId}`);
 
 // TODO - add Promise type
-const getLatestResult = async () => await http.get(http.apiBaseURLs.local, "api/process/get_latest_result");
+const getLatestResult = async () => {
+    const result = await getResult();
+    return result.detect_step;
+}
+const getResult = async (): Promise<Result> => await http.get(http.apiBaseURLs.local, "api/process/get_latest_result");
 
 const cookbookService = {
     getCookbooks,
